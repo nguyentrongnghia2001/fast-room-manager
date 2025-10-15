@@ -1,28 +1,25 @@
-import axios from 'axios';
+// plugins/axios.ts
+import axios, { type AxiosResponse } from 'axios'
 
-const baseURL = import.meta.env.BASE_URL; // Replace with your actual base URL
+const baseURL = import.meta.env.VITE_API_BASE_URL
 
 const instance = axios.create({
-  baseURL: baseURL,
+  baseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
   },
-});
+})
 
-// Optional: Interceptors
 instance.interceptors.request.use(
-  (config:any) => {
-    return config;
-  },
+  (config) => config,
   (error) => Promise.reject(error)
-);
+)
 
 instance.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    return Promise.reject(error.response?.data);
-  }
-);
+  (response: AxiosResponse) => response.data,
+  (error) => Promise.reject(error.response?.data)
+)
 
-export default instance;
+export default instance
