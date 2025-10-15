@@ -3,100 +3,115 @@ import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import RoomCard from '@/components/rooms/RoomCard.vue'
 import type { Room } from '@/types'
+import { useRoomStore } from '@/stores/rooms'
 
-// Mock data - trong thực tế sẽ fetch từ API
-const rooms = ref<Room[]>([
-  {
-    id: '1',
-    name: 'Phòng 101',
-    type: 'single',
-    area: 25,
-    price: 2500000,
-    deposit: 5000000,
-    status: 'available',
-    description: 'Phòng đơn thoáng mát, đầy đủ tiện nghi, gần trường đại học',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo'],
-    images: [],
-    floor: 1,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    name: 'Phòng 102',
-    type: 'double',
-    area: 35,
-    price: 3500000,
-    deposit: 7000000,
-    status: 'occupied',
-    description: 'Phòng đôi rộng rãi, phù hợp cho 2 người ở',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công'],
-    images: [],
-    floor: 1,
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-20')
-  },
-  {
-    id: '3',
-    name: 'Phòng 201',
-    type: 'single',
-    area: 28,
-    price: 2800000,
-    deposit: 5600000,
-    status: 'available',
-    description: 'Phòng đơn view đẹp, tầng 2 thoáng mát',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học'],
-    images: [],
-    floor: 2,
-    createdAt: new Date('2024-01-12'),
-    updatedAt: new Date('2024-01-12')
-  },
-  {
-    id: '4',
-    name: 'Phòng 202',
-    type: 'family',
-    area: 45,
-    price: 4500000,
-    deposit: 9000000,
-    status: 'maintenance',
-    description: 'Phòng gia đình rộng rãi, phù hợp cho gia đình nhỏ',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn ăn', 'Sofa', 'Ban công'],
-    images: [],
-    floor: 2,
-    createdAt: new Date('2024-01-08'),
-    updatedAt: new Date('2024-01-22')
-  },
-  {
-    id: '5',
-    name: 'Phòng 301',
-    type: 'single',
-    area: 30,
-    price: 3000000,
-    deposit: 6000000,
-    status: 'occupied',
-    description: 'Phòng đơn cao cấp, view thành phố',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo', 'Ban công'],
-    images: [],
-    floor: 3,
-    createdAt: new Date('2024-01-05'),
-    updatedAt: new Date('2024-01-18')
-  },
-  {
-    id: '6',
-    name: 'Phòng 302',
-    type: 'double',
-    area: 38,
-    price: 3800000,
-    deposit: 7600000,
-    status: 'available',
-    description: 'Phòng đôi cao cấp với đầy đủ tiện nghi hiện đại',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công', 'Máy nước nóng'],
-    images: [],
-    floor: 3,
-    createdAt: new Date('2024-01-03'),
-    updatedAt: new Date('2024-01-16')
+const roomStore = useRoomStore()
+const rooms = ref<Room[]>([])
+// const rooms = ref<Room[]>([
+//   {
+//     id: '1',
+//     name: 'Phòng 101',
+//     type: 'single',
+//     area: 25,
+//     price: 2500000,
+//     deposit: 5000000,
+//     status: 'available',
+//     description: 'Phòng đơn thoáng mát, đầy đủ tiện nghi, gần trường đại học',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo'],
+//     images: [],
+//     floor: 1,
+//     createdAt: new Date('2024-01-15'),
+//     updatedAt: new Date('2024-01-15')
+//   },
+//   {
+//     id: '2',
+//     name: 'Phòng 102',
+//     type: 'double',
+//     area: 35,
+//     price: 3500000,
+//     deposit: 7000000,
+//     status: 'occupied',
+//     description: 'Phòng đôi rộng rãi, phù hợp cho 2 người ở',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công'],
+//     images: [],
+//     floor: 1,
+//     createdAt: new Date('2024-01-10'),
+//     updatedAt: new Date('2024-01-20')
+//   },
+//   {
+//     id: '3',
+//     name: 'Phòng 201',
+//     type: 'single',
+//     area: 28,
+//     price: 2800000,
+//     deposit: 5600000,
+//     status: 'available',
+//     description: 'Phòng đơn view đẹp, tầng 2 thoáng mát',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học'],
+//     images: [],
+//     floor: 2,
+//     createdAt: new Date('2024-01-12'),
+//     updatedAt: new Date('2024-01-12')
+//   },
+//   {
+//     id: '4',
+//     name: 'Phòng 202',
+//     type: 'family',
+//     area: 45,
+//     price: 4500000,
+//     deposit: 9000000,
+//     status: 'maintenance',
+//     description: 'Phòng gia đình rộng rãi, phù hợp cho gia đình nhỏ',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn ăn', 'Sofa', 'Ban công'],
+//     images: [],
+//     floor: 2,
+//     createdAt: new Date('2024-01-08'),
+//     updatedAt: new Date('2024-01-22')
+//   },
+//   {
+//     id: '5',
+//     name: 'Phòng 301',
+//     type: 'single',
+//     area: 30,
+//     price: 3000000,
+//     deposit: 6000000,
+//     status: 'occupied',
+//     description: 'Phòng đơn cao cấp, view thành phố',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo', 'Ban công'],
+//     images: [],
+//     floor: 3,
+//     createdAt: new Date('2024-01-05'),
+//     updatedAt: new Date('2024-01-18')
+//   },
+//   {
+//     id: '6',
+//     name: 'Phòng 302',
+//     type: 'double',
+//     area: 38,
+//     price: 3800000,
+//     deposit: 7600000,
+//     status: 'available',
+//     description: 'Phòng đôi cao cấp với đầy đủ tiện nghi hiện đại',
+//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công', 'Máy nước nóng'],
+//     images: [],
+//     floor: 3,
+//     createdAt: new Date('2024-01-03'),
+//     updatedAt: new Date('2024-01-16')
+//   }
+// ])
+const isLoading = ref<boolean>(false)
+const getListRooms = async () => {
+  try {
+    isLoading.value = true
+    const response = await roomStore.getListRooms()
+    rooms.value = response
+  } catch (error) {
+    console.log(error)
+  } finally {
+    isLoading.value = false
   }
-])
+}
+getListRooms()
 
 const searchQuery = ref('')
 const selectedStatus = ref<Room['status'] | 'all'>('all')

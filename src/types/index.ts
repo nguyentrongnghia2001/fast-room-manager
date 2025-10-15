@@ -2,17 +2,20 @@ export interface Room {
   id: string
   name: string
   floor: number
-  type: 'single' | 'double' | 'family'
+  type: RoomType
   area: number
   price: number
   deposit: number
-  status: 'available' | 'occupied' | 'maintenance'
+  status: RoomStatus
   amenities: string[]
   description?: string
   images: string[]
   createdAt: string | Date
   updatedAt: string | Date
 }
+
+type RoomType = 'single' | 'double' | 'family'
+type RoomStatus = 'available' | 'occupied' | 'maintenance'
 
 export interface Tenant {
   id: string
@@ -83,4 +86,10 @@ export interface DashboardStats {
   monthlyRevenue: number
   pendingPayments: number
   overduePayments: number
+}
+
+export interface ApiResponse<T> {
+  status: 'success' | 'error'
+  message?: string
+  data: T
 }
