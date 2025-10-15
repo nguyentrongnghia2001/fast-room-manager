@@ -2,9 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Room, Tenant, Contract } from '@/types'
+import { useRoomStore } from '@/stores/rooms'
 
 const route = useRoute()
 const router = useRouter()
+const roomStore = useRoomStore()
 
 const roomId = route.params.id as string
 const room = ref<Room | null>(null)
@@ -119,29 +121,15 @@ const formatDate = (date: string | Date): string => {
   }).format(new Date(date))
 }
 
-const loadRoomData = () => {
-  loading.value = true
-  
-  // Simulate API call
-  setTimeout(() => {
-    const foundRoom = mockRooms.find(r => r.id === roomId)
-    if (foundRoom) {
-      room.value = foundRoom
-      
-      // Load tenant and contract if room is occupied
-      if (foundRoom.status === 'occupied') {
-        const contract = mockContracts.find(c => c.roomId === foundRoom.id)
-        if (contract) {
-          currentContract.value = contract
-          const tenant = mockTenants.find(t => t.id === contract.tenantId)
-          if (tenant) {
-            currentTenant.value = tenant
-          }
-        }
-      }
-    }
+const loadRoomData = async () => {
+  try {
+    loading.value = true
+    room.value = await roomStore.getDetailRoom(String(roomId)) || null
+  } catch (error) {
+    console.error('Failed to load room data:', error)
+  } finally {
     loading.value = false
-  }, 500)
+  }
 }
 
 const goBack = () => {
@@ -149,11 +137,11 @@ const goBack = () => {
 }
 
 const editRoom = () => {
-  router.push(`/rooms/${roomId}/edit`)
+  router.push(`/rooms/${room.value?._id}/edit`)
 }
 
 const createContract = () => {
-  router.push(`/contracts/new?roomId=${roomId}`)
+  router.push(`/contracts/new?roomId=${room.value?._id}`)
 }
 
 const viewContract = () => {

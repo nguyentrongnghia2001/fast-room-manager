@@ -1,5 +1,6 @@
 export interface Room {
   id: string
+  _id?: string
   name: string
   floor: number
   type: RoomType

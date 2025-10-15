@@ -196,7 +196,7 @@ const submitForm = async () => {
     console.log('Updating room:', updatedRoom)
     
     // Redirect to room detail
-    router.push(`/rooms/${roomId}`)
+    router.push(`/rooms/detail/${roomId}`)
   } catch (error) {
     console.error('Error updating room:', error)
     errors.value.submit = 'Có lỗi xảy ra khi cập nhật phòng. Vui lòng thử lại.'
@@ -206,7 +206,7 @@ const submitForm = async () => {
 }
 
 const goBack = () => {
-  router.push(`/rooms/${roomId}`)
+  router.push(`/rooms/detail/${roomId}`)
 }
 
 const deleteRoom = async () => {

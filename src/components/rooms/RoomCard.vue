@@ -137,13 +137,13 @@ const getRoomTypeText = (type: Room['type']) => {
       <!-- Actions -->
       <div class="flex space-x-2">
         <RouterLink
-          :to="`/rooms/${room.id}`"
+          :to="`/rooms/detail/${room?._id}`"
           class="flex-1 bg-primary-600 text-white text-center py-2 px-4 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors duration-200"
         >
           Xem chi tiết
         </RouterLink>
         <RouterLink
-          :to="`/rooms/${room.id}/edit`"
+          :to="`/rooms/${room?._id}/edit`"
           class="flex-1 bg-gray-100 text-gray-700 text-center py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors duration-200"
         >
           Chỉnh sửa
