@@ -1,8 +1,14 @@
+export interface Floor {
+  _id?: string
+  name: string
+  createdAt: string | Date
+  updatedAt: string | Date
+}
 export interface Room {
   id: string
   _id?: string
   name: string
-  floor: number
+  floor: string
   type: RoomType
   area: number
   price: number
