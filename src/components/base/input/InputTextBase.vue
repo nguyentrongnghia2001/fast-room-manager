@@ -1,0 +1,55 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps({
+  label: {
+    type: String,
+    required: false,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  modelValue: {
+    type: [String, Number],
+    required: true,
+  },
+  errors: {
+    type: String,
+    required: false,
+  },
+  type: {
+    type: String, 
+    required: false,
+    default: 'text',
+  },
+  placeholder: {
+    type: String,
+    required: false,
+    default: '',
+  },
+})
+const emit = defineEmits(['update:modelValue'])
+const vModel = computed({
+  get() {
+    return props.modelValue
+  },
+  set(value) {
+    emit('update:modelValue', value)
+  },
+})
+</script>
+<template>
+  <label v-if="props.label" :for="props.name" class="block text-sm font-medium text-gray-700">{{ props.label }}</label>
+    <input
+      :id="props.name"
+      v-model="vModel"
+      :type="props.type"
+      :placeholder="props.placeholder"
+      :class="[
+        'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
+        props.errors ? 'border-red-300' : ''
+      ]"
+    >
+  <p v-if="props.errors" class="mt-2 text-sm text-red-600">{{ props.errors }}</p>
+</template>
