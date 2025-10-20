@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Tenant } from '@/types'
+import { useTenantStore } from '@/stores/tenant'
 
 const router = useRouter()
+const tenantStore = useTenantStore()
 
 const isLoading = ref(true)
 const tenants = ref<Tenant[]>([])
@@ -11,66 +13,6 @@ const searchQuery = ref('')
 const statusFilter = ref('all')
 const sortBy = ref('name')
 const sortOrder = ref<'asc' | 'desc'>('asc')
-
-// Mock data
-const mockTenants: Tenant[] = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn An',
-    phone: '0901234567',
-    email: 'nguyenvanan@email.com',
-    idCard: '123456789012',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    emergencyContact: 'Nguyễn Thị Bình',
-    emergencyPhone: '0987654321',
-    notes: 'Khách thuê uy tín, thanh toán đúng hạn',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-    status: 'active'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Bình',
-    phone: '0912345678',
-    email: 'tranthibinh@email.com',
-    idCard: '987654321098',
-    address: '456 Đường XYZ, Quận 2, TP.HCM',
-    emergencyContact: 'Trần Văn Cường',
-    emergencyPhone: '0976543210',
-    notes: '',
-    createdAt: '2024-02-01',
-    updatedAt: '2024-02-01',
-    status: 'active'
-  },
-  {
-    id: '3',
-    name: 'Lê Minh Cường',
-    phone: '0923456789',
-    email: 'leminhcuong@email.com',
-    idCard: '456789123456',
-    address: '789 Đường DEF, Quận 3, TP.HCM',
-    emergencyContact: 'Lê Thị Dung',
-    emergencyPhone: '0965432109',
-    notes: 'Khách thuê mới',
-    createdAt: '2024-03-10',
-    updatedAt: '2024-03-10',
-    status: 'inactive'
-  },
-  {
-    id: '4',
-    name: 'Phạm Thị Dung',
-    phone: '0934567890',
-    email: 'phamthidung@email.com',
-    idCard: '789123456789',
-    address: '321 Đường GHI, Quận 4, TP.HCM',
-    emergencyContact: 'Phạm Văn Em',
-    emergencyPhone: '0954321098',
-    notes: 'Hợp đồng đã kết thúc',
-    createdAt: '2023-12-01',
-    updatedAt: '2023-12-01',
-    status: 'terminated'
-  }
-]
 
 const filteredAndSortedTenants = computed(() => {
   let filtered = tenants.value
@@ -159,11 +101,9 @@ const toggleSort = (field: string) => {
 
 const loadTenants = async () => {
   isLoading.value = true
-  
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    tenants.value = mockTenants
+    const response = await tenantStore.getListTenants()
+    tenants.value = response
   } catch (error) {
     console.error('Error loading tenants:', error)
   } finally {
@@ -411,13 +351,13 @@ onMounted(() => {
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                 <button 
-                  @click="$router.push(`/tenants/${tenant.id}`)"
+                  @click="$router.push(`/tenants/detail/${tenant?._id}`)"
                   class="text-blue-600 hover:text-blue-900"
                 >
                   Xem
                 </button>
                 <button 
-                  @click="$router.push(`/tenants/${tenant.id}/edit`)"
+                  @click="$router.push(`/tenants/${tenant?._id}/edit`)"
                   class="text-orange-600 hover:text-orange-900"
                 >
                   Sửa

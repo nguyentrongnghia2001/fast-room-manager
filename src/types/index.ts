@@ -20,6 +20,7 @@ type RoomStatus = 'available' | 'occupied' | 'maintenance'
 
 export interface Tenant {
   id: string
+  _id?: string
   name: string
   phone: string
   email?: string
@@ -28,12 +29,15 @@ export interface Tenant {
   emergencyContact?: string
   emergencyPhone?: string
   notes?: string
-  status: 'active' | 'inactive' | 'terminated'
+  status: TenantStatus
   createdAt: string | Date
   updatedAt: string | Date
 }
 
+type TenantStatus = 'active' | 'inactive' | 'terminated'
+
 export interface Contract {
+  _id?: string
   id: string
   roomId: string
   tenantId: string

@@ -2,7 +2,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Room } from '@/types'
+import { useRoomStore } from '@/stores/rooms'
 
+const roomStore = useRoomStore()
 const route = useRoute()
 const router = useRouter()
 
@@ -93,25 +95,28 @@ const floorOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `Tầng ${i + 1}`
 }))
 
-const loadRoomData = () => {
+const loadRoomData = async () => {
   loading.value = true
-  
-  // Simulate API call
-  setTimeout(() => {
-    const room = mockRooms.find(r => r.id === roomId)
-    if (room) {
-      formData.name = room.name
-      formData.type = room.type
-      formData.area = room.area
-      formData.price = room.price
-      formData.deposit = room.deposit
-      formData.floor = room.floor
-      formData.description = room.description || ''
-      formData.amenities = [...room.amenities]
-      formData.status = room.status
-    }
+  try {
+    const res = await roomStore.getDetailRoom(roomId)
+    setRoomData(res)
+  } catch (error) {
+    console.error('Error loading room data:', error)
+  } finally {
     loading.value = false
-  }, 500)
+  }
+}
+
+const setRoomData  = (room?: Room) => {
+  formData.name = room?.name || ''
+  formData.type = room?.type || 'single'
+  formData.area = room?.area || null
+  formData.price = room?.price || null
+  formData.deposit = room?.deposit || null
+  formData.floor = room?.floor || null
+  formData.description = room?.description || ''
+  formData.amenities = [...room?.amenities || []]
+  formData.status = room?.status || 'available'
 }
 
 const validateForm = (): boolean => {

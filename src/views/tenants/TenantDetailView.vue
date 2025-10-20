@@ -3,79 +3,94 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { Tenant, Contract, Room } from '@/types'
 
+// Store
+import { useTenantStore } from '@/stores/tenant'
+import { useRoomStore } from '@/stores/rooms'
+import { useContractStore } from '@/stores/contract'
+
 const route = useRoute()
 const router = useRouter()
+const tenantStore = useTenantStore()
+const roomStore = useRoomStore()
+const contractStore = useContractStore()
 
 const tenantId = route.params.id as string
 const isLoading = ref(true)
 const tenant = ref<Tenant | null>(null)
 const contracts = ref<Contract[]>([])
-const rooms = ref<Room[]>([])
+
+// Computed
+const listRoomsComputed = computed(() => {
+  return roomStore.listRooms || []
+})
+const listContractsComputed = computed(() => {
+  return contractStore.listContracts || []
+})
 
 // Mock data
-const mockTenants: Tenant[] = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn An',
-    phone: '0901234567',
-    email: 'nguyenvanan@email.com',
-    idCard: '123456789012',
-    address: '123 Đường ABC, Quận 1, TP.HCM',
-    emergencyContact: 'Nguyễn Thị Bình',
-    emergencyPhone: '0987654321',
-    notes: 'Khách thuê uy tín, thanh toán đúng hạn',
-    createdAt: '2024-01-15',
-    updatedAt: '2024-01-15',
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'Trần Thị Bình',
-    phone: '0912345678',
-    email: 'tranthibinh@email.com',
-    idCard: '987654321098',
-    address: '456 Đường XYZ, Quận 2, TP.HCM',
-    emergencyContact: 'Trần Văn Cường',
-    emergencyPhone: '0976543210',
-    notes: '',
-    createdAt: '2024-02-01',
-    updatedAt: '2024-02-01',
-    status: 'active',
-  },
-]
+// const mockTenants: Tenant[] = [
+//   {
+//     id: '1',
+//     name: 'Nguyễn Văn An',
+//     phone: '0901234567',
+//     email: 'nguyenvanan@email.com',
+//     idCard: '123456789012',
+//     address: '123 Đường ABC, Quận 1, TP.HCM',
+//     emergencyContact: 'Nguyễn Thị Bình',
+//     emergencyPhone: '0987654321',
+//     notes: 'Khách thuê uy tín, thanh toán đúng hạn',
+//     createdAt: '2024-01-15',
+//     updatedAt: '2024-01-15',
+//     status: 'active',
+//   },
+//   {
+//     id: '2',
+//     name: 'Trần Thị Bình',
+//     phone: '0912345678',
+//     email: 'tranthibinh@email.com',
+//     idCard: '987654321098',
+//     address: '456 Đường XYZ, Quận 2, TP.HCM',
+//     emergencyContact: 'Trần Văn Cường',
+//     emergencyPhone: '0976543210',
+//     notes: '',
+//     createdAt: '2024-02-01',
+//     updatedAt: '2024-02-01',
+//     status: 'active',
+//   },
+// ]
 
-const mockContracts: Contract[] = [
-  {
-    id: '1',
-    roomId: '1',
-    tenantId: '1',
-    startDate: '2024-01-15',
-    endDate: '2024-07-15',
-    monthlyRent: 5000000,
-    deposit: 10000000,
-    status: 'active',
-    createdAt: '2024-01-10',
-    updatedAt: '2024-01-10',
-  },
-]
+// const mockContracts: Contract[] = [
+//   {
+//     id: '1',
+//     roomId: '1',
+//     tenantId: '1',
+//     startDate: '2024-01-15',
+//     endDate: '2024-07-15',
+//     monthlyRent: 5000000,
+//     deposit: 10000000,
+//     status: 'active',
+//     createdAt: '2024-01-10',
+//     updatedAt: '2024-01-10',
+//   },
+// ]
 
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    name: 'Phòng 101',
-    floor: 1,
-    type: 'single',
-    area: 25,
-    price: 5000000,
-    deposit: 10000000,
-    status: 'occupied',
-    amenities: ['wifi', 'ac', 'kitchen'],
-    description: 'Phòng đơn thoáng mát',
-    images: ['/room1.jpg'],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-  },
-]
+// const mockRooms: Room[] = [
+//   {
+//     id: '1',
+//     name: 'Phòng 101',
+//     floor: 1,
+//     type: 'single',
+//     area: 25,
+//     price: 5000000,
+//     deposit: 10000000,
+//     status: 'occupied',
+//     amenities: ['wifi', 'ac', 'kitchen'],
+//     description: 'Phòng đơn thoáng mát',
+//     images: ['/room1.jpg'],
+//     createdAt: '2024-01-01',
+//     updatedAt: '2024-01-01',
+//   },
+// ]
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -107,7 +122,7 @@ const getStatusColor = (status: string) => {
 }
 
 const activeContracts = computed(() => {
-  return contracts.value.filter((contract) => contract.status === 'active')
+  return listContractsComputed.value.filter((contract) => contract?.status === 'active') || []
 })
 
 const loadTenantData = async () => {
@@ -115,14 +130,9 @@ const loadTenantData = async () => {
 
   try {
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    const res = await tenantStore.getDetailTenant(tenantId)
+    tenant.value = res || []
 
-    tenant.value = mockTenants.find((t) => t.id === tenantId) || null
-    contracts.value = mockContracts.filter((c) => c.tenantId === tenantId)
-
-    // Load room data for contracts
-    const roomIds = contracts.value.map((c) => c.roomId)
-    rooms.value = mockRooms.filter((r) => roomIds.includes(r.id))
   } catch (error) {
     console.error('Error loading tenant data:', error)
   } finally {
@@ -131,7 +141,7 @@ const loadTenantData = async () => {
 }
 
 const getRoomName = (roomId: string) => {
-  const room = rooms.value.find((r) => r.id === roomId)
+  const room = listRoomsComputed.value.find((r) => r?._id === roomId)
   return room ? room.name : 'N/A'
 }
 

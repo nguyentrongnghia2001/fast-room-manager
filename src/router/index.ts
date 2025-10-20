@@ -40,7 +40,7 @@ const router = createRouter({
       component: () => import('@/views/tenants/TenantCreateView.vue'),
     },
     {
-      path: '/tenants/:id',
+      path: '/tenants/detail/:id',
       name: 'tenant-detail',
       component: () => import('@/views/tenants/TenantDetailView.vue'),
     },
