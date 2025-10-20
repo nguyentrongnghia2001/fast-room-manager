@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+
+// Type
 import type { Room } from '@/types'
 
+// Store
+import { useFloorStore } from '@/stores/floor'
+
+// Components
+import InputTextBase from '@/components/base/input/InputTextBase.vue'
+import InputSelectBase from '@/components/base/input/InputSelectBase.vue'
+import InputNumberBase from '@/components/base/input/InputNumberBase.vue'
+import InputTextareaBase from '@/components/base/input/InputTextareaBase.vue'
+
 const router = useRouter()
+
+const floorStore = useFloorStore()
 
 const loading = ref(false)
 const errors = ref<Record<string, string>>({})
@@ -11,10 +24,10 @@ const errors = ref<Record<string, string>>({})
 const formData = reactive({
   name: '',
   type: 'single' as Room['type'],
-  area: null as number | null,
-  price: null as number | null,
-  deposit: null as number | null,
-  floor: null as number | null,
+  area: 0 as number,
+  price: 0 as number,
+  deposit: 0 as number,
+  floor: '' as string,
   description: '',
   amenities: [] as string[],
   status: 'available' as Room['status']
@@ -50,10 +63,20 @@ const statusOptions = [
   { value: 'maintenance', label: 'Bảo trì' }
 ]
 
-const floorOptions = Array.from({ length: 10 }, (_, i) => ({
-  value: i + 1,
-  label: `Tầng ${i + 1}`
-}))
+const getFloorOptions = async () => {
+  try {
+    await floorStore.getListFloors()
+  } catch (error) {
+    console.error('Error fetching floors:', error)
+  }
+}
+
+const floorOptions = computed(() => {
+  return floorStore.listFloors.map((floor) => ({
+    value: floor?._id || '',
+    label: floor?.name || ''
+  })) || []
+})
 
 const validateForm = (): boolean => {
   errors.value = {}
@@ -74,9 +97,9 @@ const validateForm = (): boolean => {
     errors.value.deposit = 'Tiền cọc phải lớn hơn 0'
   }
   
-  if (!formData.floor || formData.floor <= 0) {
-    errors.value.floor = 'Tầng phải lớn hơn 0'
-  }
+  // if (!formData.floor) {
+  //   errors.value.floor = 'Tầng không được để trống'
+  // }
   
   if (!formData.description.trim()) {
     errors.value.description = 'Mô tả là bắt buộc'
@@ -99,16 +122,16 @@ const formatCurrency = (value: string): string => {
   return new Intl.NumberFormat('vi-VN').format(parseInt(number) || 0)
 }
 
-const handlePriceInput = (event: Event) => {
+const handlePriceInput = (event: Event) => {  
   const target = event.target as HTMLInputElement
   const value = target.value.replace(/\D/g, '')
-  formData.price = parseInt(value) || null
+  formData.price = parseInt(value)  
 }
 
 const handleDepositInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   const value = target.value.replace(/\D/g, '')
-  formData.deposit = parseInt(value) || null
+  formData.deposit = parseInt(value)
 }
 
 const submitForm = async () => {
@@ -150,6 +173,10 @@ const submitForm = async () => {
 const goBack = () => {
   router.push('/rooms')
 }
+
+onMounted(() => {
+  getFloorOptions()
+})
 </script>
 
 <template>
@@ -182,143 +209,98 @@ const goBack = () => {
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <!-- Room Name -->
             <div class="sm:col-span-2">
-              <label for="name" class="block text-sm font-medium text-gray-700">Tên phòng *</label>
-              <input
-                id="name"
+              <InputTextBase
+                label="Tên phòng"
+                name="name"
                 v-model="formData.name"
                 type="text"
                 placeholder="VD: Phòng 101"
-                :class="[
-                  'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                  errors.name ? 'border-red-300' : ''
-                ]"
-              >
-              <p v-if="errors.name" class="mt-2 text-sm text-red-600">{{ errors.name }}</p>
+                :errors="errors.name"
+              />
             </div>
 
             <!-- Room Type -->
             <div>
-              <label for="type" class="block text-sm font-medium text-gray-700">Loại phòng *</label>
-              <select
-                id="type"
+              <InputSelectBase
+                label="Loại phòng"
+                name="type"
                 v-model="formData.type"
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              >
-                <option v-for="type in roomTypes" :key="type.value" :value="type.value">
-                  {{ type.label }}
-                </option>
-              </select>
+                :options="roomTypes"
+                :errors="errors.type"
+              />
             </div>
 
             <!-- Floor -->
             <div>
-              <label for="floor" class="block text-sm font-medium text-gray-700">Tầng *</label>
-              <select
-                id="floor"
+              <InputSelectBase
+                label="Tầng"
+                name="floor"
                 v-model="formData.floor"
-                :class="[
-                  'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                  errors.floor ? 'border-red-300' : ''
-                ]"
-              >
-                <option value="">Chọn tầng</option>
-                <option v-for="floor in floorOptions" :key="floor.value" :value="floor.value">
-                  {{ floor.label }}
-                </option>
-              </select>
-              <p v-if="errors.floor" class="mt-2 text-sm text-red-600">{{ errors.floor }}</p>
+                :options="floorOptions"
+                :errors="errors.floor"
+              />
             </div>
 
             <!-- Area -->
             <div>
-              <label for="area" class="block text-sm font-medium text-gray-700">Diện tích (m²) *</label>
-              <input
-                id="area"
-                v-model.number="formData.area"
-                type="number"
-                min="1"
-                step="0.1"
+              <InputTextBase
+                label="Diện tích (m2)"
+                name="area"
+                v-model="formData.area"
+                type="text"
                 placeholder="VD: 25"
-                :class="[
-                  'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                  errors.area ? 'border-red-300' : ''
-                ]"
-              >
-              <p v-if="errors.area" class="mt-2 text-sm text-red-600">{{ errors.area }}</p>
+                :errors="errors.area"
+              />
             </div>
 
             <!-- Status -->
             <div>
-              <label for="status" class="block text-sm font-medium text-gray-700">Trạng thái</label>
-              <select
-                id="status"
+              <InputSelectBase
+                label="Trạng thái"
+                name="status"
                 v-model="formData.status"
-                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-              >
-                <option v-for="status in statusOptions" :key="status.value" :value="status.value">
-                  {{ status.label }}
-                </option>
-              </select>
+                :options="statusOptions"
+                :errors="errors.status"
+              />
             </div>
 
             <!-- Price -->
             <div>
-              <label for="price" class="block text-sm font-medium text-gray-700">Giá thuê (VND/tháng) *</label>
-              <div class="mt-1 relative rounded-md shadow-sm">
-                <input
-                  id="price"
-                  :value="formData.price ? formatCurrency(formData.price.toString()) : ''"
-                  @input="handlePriceInput"
-                  type="text"
-                  placeholder="VD: 2,500,000"
-                  :class="[
-                    'block w-full pr-12 border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                    errors.price ? 'border-red-300' : ''
-                  ]"
-                >
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <span class="text-gray-500 sm:text-sm">VND</span>
-                </div>
-              </div>
-              <p v-if="errors.price" class="mt-2 text-sm text-red-600">{{ errors.price }}</p>
+              <InputNumberBase
+                label="Giá thuê (VND/tháng)"
+                name="price"
+                :model-value="formData.price ? formatCurrency(formData.price.toString()) : ''"
+                placeholder="VD: 2,500,000"
+                suffix="VND"
+                :errors="errors.price"
+                @change="handlePriceInput"
+              />
             </div>
 
             <!-- Deposit -->
             <div>
-              <label for="deposit" class="block text-sm font-medium text-gray-700">Tiền cọc (VND) *</label>
-              <div class="mt-1 relative rounded-md shadow-sm">
-                <input
-                  id="deposit"
-                  :value="formData.deposit ? formatCurrency(formData.deposit.toString()) : ''"
-                  @input="handleDepositInput"
-                  type="text"
-                  placeholder="VD: 5,000,000"
-                  :class="[
-                    'block w-full pr-12 border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                    errors.deposit ? 'border-red-300' : ''
-                  ]"
-                >
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <span class="text-gray-500 sm:text-sm">VND</span>
-                </div>
-              </div>
-              <p v-if="errors.deposit" class="mt-2 text-sm text-red-600">{{ errors.deposit }}</p>
+              <InputNumberBase
+                label="Tiền cọc (VND)"
+                name="deposit"
+                :model-value="formData.deposit ? formatCurrency(formData.deposit.toString()) : ''"
+                type="number"
+                placeholder="VD: 5,000,000"
+                suffix="VND"
+                :errors="errors.deposit"
+                @change="handleDepositInput"
+              />
             </div>
 
             <!-- Description -->
             <div class="sm:col-span-2">
-              <label for="description" class="block text-sm font-medium text-gray-700">Mô tả *</label>
-              <textarea
-                id="description"
+              <InputTextareaBase
+                label="Mô tả"
+                name="description"
                 v-model="formData.description"
-                rows="3"
+                type="text"
                 placeholder="Mô tả chi tiết về phòng trọ..."
-                :class="[
-                  'mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm',
-                  errors.description ? 'border-red-300' : ''
-                ]"
-              ></textarea>
-              <p v-if="errors.description" class="mt-2 text-sm text-red-600">{{ errors.description }}</p>
+                :errors="errors.description"
+              />
             </div>
           </div>
         </div>
