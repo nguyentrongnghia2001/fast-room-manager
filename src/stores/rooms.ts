@@ -38,6 +38,21 @@ export const useRoomStore = defineStore('room', {
             reject(error)
           })
       });
+    },
+    async createRoom(payload: any): Promise<Room> {
+      return new Promise((resolve, reject) => {
+        axios.post<ApiResponse<Room>>(`/api/v1/rooms`, payload)
+          .then((response: any) => {
+            if(response.status !== 'success'){
+              throw new Error("Failed to create room");
+            }
+            const data = response.data || {}
+            resolve(data)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
     }
   },
 })
