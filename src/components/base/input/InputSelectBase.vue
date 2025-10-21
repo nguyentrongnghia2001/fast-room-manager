@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectOption } from '@/types/type';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -24,7 +25,7 @@ const props = defineProps({
     default: '',
   },
   options: {
-    type: Array as () => { value: string; label: string }[] || [],
+    type: Array as () => SelectOption[] || [],
     required: true,
   },
 })

@@ -8,7 +8,7 @@ export interface Room {
   id: string
   _id?: string
   name: string
-  floor: string
+  idFloor: string
   type: RoomType
   area: number
   price: number

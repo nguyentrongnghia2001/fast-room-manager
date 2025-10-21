@@ -12,6 +12,6 @@
     }
   }
   select, textarea, input {
-    @apply p-2
+    @apply p-2 border
   }
 }

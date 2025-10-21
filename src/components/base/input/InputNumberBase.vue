@@ -8,6 +8,7 @@ const props = defineProps({
   errors: String,
   placeholder: { type: String, default: 'Enter' },
   suffix: { type: String, default: 'VND' },
+  type: { type: String, default: 'text' },
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -48,7 +49,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
       :value="vModel"
       @input="handleInput"
       @keydown="handleKeyDown"
-      type="text"
+      :type="props.type"
       inputmode="numeric"
       :placeholder="props.placeholder"
       :class="[
