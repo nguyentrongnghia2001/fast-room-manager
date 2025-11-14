@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import type { Room } from '@/types'
 
 // Constant
-import { availableAmenities, roomTypes, statusOptions } from '@/constant'
+import { availableAmenities, roomTypes, statusOptions } from '@/constant/room'
 
 // Store
 import { useFloorStore } from '@/stores/floor'
