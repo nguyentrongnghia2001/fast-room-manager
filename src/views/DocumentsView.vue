@@ -20,5 +20,8 @@ import IconSpin from '@/components/icons/IconSpin.vue'
       type="submit"
       color="primary"
     />
+    <p class="text-sm text-primary-500">
+      This is a paragraph.
+    </p>
   </div>
 </template>

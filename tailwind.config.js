@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -33,8 +33,8 @@ export default {
           50: '#fef2f2',
           500: '#ef4444',
           600: '#dc2626',
-        }
-      }
+        },
+      },
     },
   },
   plugins: [],
