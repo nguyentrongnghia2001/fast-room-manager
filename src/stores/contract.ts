@@ -38,6 +38,48 @@ export const useContractStore = defineStore('contract', {
             reject(error)
           })
       });
+    },
+    async createContract(payload: Partial<Contract>): Promise<Contract> {
+      return new Promise((resolve, reject) => {
+        axios.post<ApiResponse<Contract>>("/api/v1/contract", payload)
+          .then((response: any) => {
+            if(response.status !== 'success'){
+              throw new Error("Failed to create contract");
+            }
+            const data = response.data || {}
+            resolve(data)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
+    },
+    async updateContract(id: string, payload: Partial<Contract>): Promise<Contract> {
+      return new Promise((resolve, reject) => {
+        axios.put<ApiResponse<Contract>>(`/api/v1/contract/${id}`, payload)
+          .then((response: any) => {
+            if(response.status !== 'success'){
+              throw new Error("Failed to update contract");
+            }
+            const data = response.data || {}
+            this.contractDetail = data
+            resolve(data)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
+    },
+    async deleteContract(id: string): Promise<void> {
+      return new Promise((resolve, reject) => {
+        axios.delete(`/api/v1/contract/${id}`)
+          .then(() => {
+            resolve()
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
     }
   },
 })

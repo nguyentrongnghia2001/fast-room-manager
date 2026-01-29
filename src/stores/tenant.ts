@@ -38,6 +38,48 @@ export const useTenantStore = defineStore('tenant', {
             reject(error)
           })
       });
+    },
+    async createTenant(payload: Partial<Tenant>): Promise<Tenant> {
+      return new Promise((resolve, reject) => {
+        axios.post<ApiResponse<Tenant>>("/api/v1/tenant", payload)
+          .then((response: any) => {
+            if(response.status !== 'success'){
+              throw new Error("Failed to create tenant");
+            }
+            const data = response.data || {}
+            resolve(data)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
+    },
+    async updateTenant(id: string, payload: Partial<Tenant>): Promise<Tenant> {
+      return new Promise((resolve, reject) => {
+        axios.put<ApiResponse<Tenant>>(`/api/v1/tenant/${id}`, payload)
+          .then((response: any) => {
+            if(response.status !== 'success'){
+              throw new Error("Failed to update tenant");
+            }
+            const data = response.data || {}
+            this.tenantDetail = data
+            resolve(data)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
+    },
+    async deleteTenant(id: string): Promise<void> {
+      return new Promise((resolve, reject) => {
+        axios.delete(`/api/v1/tenant/${id}`)
+          .then(() => {
+            resolve()
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      });
     }
   },
 })

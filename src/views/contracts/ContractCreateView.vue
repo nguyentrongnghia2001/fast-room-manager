@@ -150,70 +150,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Room, Tenant } from '@/types'
+import { useContractStore } from '@/stores/contract'
+import { useRoomStore } from '@/stores/rooms'
+import { useTenantStore } from '@/stores/tenant'
 
 const router = useRouter()
+const contractStore = useContractStore()
+const roomStore = useRoomStore()
+const tenantStore = useTenantStore()
 
-// Mock data
-const availableRooms = ref<Room[]>([
-  {
-    id: '1',
-    name: 'Phòng 101',
-    floor: 1,
-    type: 'single',
-    area: 25,
-    price: 3000000,
-    deposit: 6000000,
-    status: 'available',
-    amenities: ['Điều hòa', 'Tủ lạnh'],
-    description: 'Phòng đơn thoáng mát',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '2',
-    name: 'Phòng 102',
-    floor: 1,
-    type: 'double',
-    area: 35,
-    price: 4500000,
-    deposit: 9000000,
-    status: 'available',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Máy giặt'],
-    description: 'Phòng đôi rộng rãi',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-])
-
-const tenants = ref<Tenant[]>([
-  {
-    id: '1',
-    name: 'Nguyễn Văn A',
-    phone: '0123456789',
-    email: 'nguyenvana@email.com',
-    idCard: '123456789',
-    address: 'Hà Nội',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị B',
-    phone: '0987654321',
-    email: 'tranthib@email.com',
-    idCard: '987654321',
-    address: 'TP.HCM',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-])
+// Data
+const availableRooms = ref<Room[]>([])
+const tenants = ref<Tenant[]>([])
+const isLoadingData = ref(true)
 
 // Form data
 const form = reactive({
@@ -301,17 +253,45 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Create contract via API
+    await contractStore.createContract({
+      roomId: form.roomId,
+      tenantId: form.tenantId,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      monthlyRent: form.monthlyRent,
+      deposit: form.deposit,
+      status: 'active'
+    })
     
-    console.log('Creating contract:', form)
+    console.log('Contract created successfully')
     
     // Redirect to contracts list
     router.push('/contracts')
   } catch (error) {
     console.error('Error creating contract:', error)
+    alert('Có lỗi xảy ra khi tạo hợp đồng. Vui lòng thử lại.')
   } finally {
     isSubmitting.value = false
+  }
+}
+
+// Load initial data
+const loadData = async () => {
+  isLoadingData.value = true
+  try {
+    const [roomsData, tenantsData] = await Promise.all([
+      roomStore.getListRooms(),
+      tenantStore.getListTenants()
+    ])
+    
+    // Filter only available rooms
+    availableRooms.value = roomsData.filter(room => room.status === 'available')
+    tenants.value = tenantsData.filter(tenant => tenant.status === 'active')
+  } catch (error) {
+    console.error('Error loading data:', error)
+  } finally {
+    isLoadingData.value = false
   }
 }
 
@@ -325,4 +305,9 @@ const updateRoomDetails = () => {
 
 // Watch for room selection changes
 watch(() => form.roomId, updateRoomDetails)
+
+// Lifecycle
+onMounted(() => {
+  loadData()
+})
 </script>

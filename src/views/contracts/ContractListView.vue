@@ -226,6 +226,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import type { Contract, Room, Tenant } from '@/types'
+import { useContractStore } from '@/stores/contract'
+import { useRoomStore } from '@/stores/rooms'
+import { useTenantStore } from '@/stores/tenant'
+
+const contractStore = useContractStore()
+const roomStore = useRoomStore()
+const tenantStore = useTenantStore()
 
 // Reactive data
 const isLoading = ref(true)
@@ -235,130 +242,6 @@ const tenants = ref<Tenant[]>([])
 const searchQuery = ref('')
 const statusFilter = ref('')
 const sortBy = ref('createdAt')
-
-// Mock data
-const mockContracts: Contract[] = [
-  {
-    id: '1',
-    roomId: '1',
-    tenantId: '1',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-    monthlyRent: 3000000,
-    deposit: 6000000,
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '2',
-    roomId: '2',
-    tenantId: '2',
-    startDate: '2024-02-01',
-    endDate: '2024-07-31',
-    monthlyRent: 4500000,
-    deposit: 9000000,
-    status: 'expired',
-    createdAt: '2024-02-01',
-    updatedAt: '2024-02-01'
-  },
-  {
-    id: '3',
-    roomId: '3',
-    tenantId: '3',
-    startDate: '2024-03-01',
-    endDate: '2025-02-28',
-    monthlyRent: 5000000,
-    deposit: 10000000,
-    status: 'active',
-    createdAt: '2024-03-01',
-    updatedAt: '2024-03-01'
-  }
-]
-
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    name: 'Phòng 101',
-    floor: 1,
-    type: 'single',
-    area: 25,
-    price: 3000000,
-    deposit: 6000000,
-    status: 'occupied',
-    amenities: [],
-    description: '',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '2',
-    name: 'Phòng 102',
-    floor: 1,
-    type: 'double',
-    area: 35,
-    price: 4500000,
-    deposit: 9000000,
-    status: 'available',
-    amenities: [],
-    description: '',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '3',
-    name: 'Phòng 201',
-    floor: 2,
-    type: 'family',
-    area: 45,
-    price: 5000000,
-    deposit: 10000000,
-    status: 'occupied',
-    amenities: [],
-    description: '',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-]
-
-const mockTenants: Tenant[] = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn A',
-    phone: '0123456789',
-    email: 'nguyenvana@email.com',
-    idCard: '123456789',
-    address: 'Hà Nội',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '2',
-    name: 'Trần Thị B',
-    phone: '0987654321',
-    email: 'tranthib@email.com',
-    idCard: '987654321',
-    address: 'TP.HCM',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  },
-  {
-    id: '3',
-    name: 'Lê Văn C',
-    phone: '0369852147',
-    email: 'levanc@email.com',
-    idCard: '369852147',
-    address: 'Đà Nẵng',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-]
 
 // Computed
 const contractStats = computed(() => {
@@ -468,12 +351,16 @@ const loadData = async () => {
   isLoading.value = true
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Fetch data from API
+    const [contractsData, roomsData, tenantsData] = await Promise.all([
+      contractStore.getListContracts(),
+      roomStore.getListRooms(),
+      tenantStore.getListTenants()
+    ])
     
-    contracts.value = mockContracts
-    rooms.value = mockRooms
-    tenants.value = mockTenants
+    contracts.value = contractsData
+    rooms.value = roomsData
+    tenants.value = tenantsData
   } catch (error) {
     console.error('Error loading contracts:', error)
   } finally {

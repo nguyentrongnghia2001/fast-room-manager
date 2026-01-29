@@ -165,19 +165,19 @@
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="transaction in recentTransactions" :key="transaction.id" class="hover:bg-gray-50">
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ formatDate(transaction.date) }}
+                {{ formatDate(transaction.createdAt) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ transaction.room }}
+                {{ transaction.contractId }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ transaction.tenant }}
+                {{ transaction.month }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ transaction.type }}
+                Thanh toán
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ formatCurrency(transaction.amount) }}
+                {{ formatCurrency(transaction.totalAmount) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
@@ -197,6 +197,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useReportStore } from '@/stores/report'
+import { usePaymentStore } from '@/stores/payment'
+import type { Payment } from '@/types'
+
+const reportStore = useReportStore()
+const paymentStore = usePaymentStore()
 
 // Reactive data
 const dateRange = ref({
@@ -204,59 +210,44 @@ const dateRange = ref({
   to: ''
 })
 const reportType = ref('revenue')
+const isLoading = ref(true)
 
 const revenueStats = ref({
-  thisMonth: 45000000,
-  growth: 12.5,
-  pending: 8500000
+  thisMonth: 0,
+  growth: 0,
+  pending: 0
 })
 
-const recentTransactions = ref([
-  {
-    id: '1',
-    date: '2024-01-15',
-    room: 'Phòng 101',
-    tenant: 'Nguyễn Văn A',
-    type: 'Tiền thuê',
-    amount: 3000000,
-    status: 'paid'
-  },
-  {
-    id: '2',
-    date: '2024-01-14',
-    room: 'Phòng 102',
-    tenant: 'Trần Thị B',
-    type: 'Tiền cọc',
-    amount: 9000000,
-    status: 'paid'
-  },
-  {
-    id: '3',
-    date: '2024-01-13',
-    room: 'Phòng 201',
-    tenant: 'Lê Văn C',
-    type: 'Tiền thuê',
-    amount: 5000000,
-    status: 'pending'
-  },
-  {
-    id: '4',
-    date: '2024-01-12',
-    room: 'Phòng 103',
-    tenant: 'Phạm Thị D',
-    type: 'Tiền điện nước',
-    amount: 500000,
-    status: 'paid'
-  }
-])
+const recentTransactions = ref<Payment[]>([])
 
 // Computed
 const occupancyRate = computed(() => {
-  // Mock calculation
-  return 85.7
+  // Will be calculated from dashboard stats
+  return reportStore.dashboardStats.totalRooms > 0 
+    ? (reportStore.dashboardStats.occupiedRooms / reportStore.dashboardStats.totalRooms * 100).toFixed(1)
+    : 0
 })
 
 // Methods
+const loadData = async () => {
+  isLoading.value = true
+  try {
+    // Load revenue stats and recent payments
+    const [revenueData, paymentsData] = await Promise.all([
+      reportStore.getRevenueStats(),
+      paymentStore.getListPayments({ status: undefined, month: undefined })
+    ])
+    
+    revenueStats.value = revenueData
+    // Get the 5 most recent transactions
+    recentTransactions.value = paymentsData.slice(0, 5)
+  } catch (error) {
+    console.error('Error loading report data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -264,8 +255,8 @@ const formatCurrency = (amount: number): string => {
   }).format(amount)
 }
 
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('vi-VN')
+const formatDate = (date: string | Date): string => {
+  return new Date(date).toLocaleDateString('vi-VN')
 }
 
 const getTransactionStatusColor = (status: string): string => {
@@ -307,5 +298,6 @@ const setDefaultDateRange = () => {
 // Lifecycle
 onMounted(() => {
   setDefaultDateRange()
+  loadData()
 })
 </script>

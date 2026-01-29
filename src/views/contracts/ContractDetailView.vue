@@ -72,7 +72,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-600">Tầng</p>
-                <p class="font-medium">Tầng {{ room.floor }}</p>
+                <p class="font-medium">{{ room.idFloor?.name || 'N/A' }}</p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">Loại phòng</p>
@@ -230,9 +230,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import type { Contract, Room, Tenant, Payment } from '@/types'
+import { useContractStore } from '@/stores/contract'
+import { useRoomStore } from '@/stores/rooms'
+import { useTenantStore } from '@/stores/tenant'
+import { usePaymentStore } from '@/stores/payment'
 
 const route = useRoute()
 const contractId = route.params.id as string
+const contractStore = useContractStore()
+const roomStore = useRoomStore()
+const tenantStore = useTenantStore()
+const paymentStore = usePaymentStore()
 
 // Reactive data
 const isLoading = ref(true)
@@ -240,87 +248,6 @@ const contract = ref<Contract | null>(null)
 const room = ref<Room | null>(null)
 const tenant = ref<Tenant | null>(null)
 const recentPayments = ref<Payment[]>([])
-
-// Mock data
-const mockContracts: Contract[] = [
-  {
-    id: '1',
-    roomId: '1',
-    tenantId: '1',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-    monthlyRent: 3000000,
-    deposit: 6000000,
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-]
-
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    name: 'Phòng 101',
-    floor: 1,
-    type: 'single',
-    area: 25,
-    price: 3000000,
-    deposit: 6000000,
-    status: 'occupied',
-    amenities: ['Điều hòa', 'Tủ lạnh'],
-    description: 'Phòng đơn thoáng mát',
-    images: [],
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-]
-
-const mockTenants: Tenant[] = [
-  {
-    id: '1',
-    name: 'Nguyễn Văn A',
-    phone: '0123456789',
-    email: 'nguyenvana@email.com',
-    idCard: '123456789',
-    address: 'Hà Nội',
-    status: 'active',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01'
-  }
-]
-
-const mockPayments: Payment[] = [
-  {
-    id: '1',
-    contractId: '1',
-    month: '2024-01',
-    rentAmount: 3000000,
-    electricityAmount: 200000,
-    waterAmount: 100000,
-    otherFees: 50000,
-    totalAmount: 3350000,
-    paidAmount: 3350000,
-    status: 'paid',
-    paidDate: '2024-01-05',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-05'
-  },
-  {
-    id: '2',
-    contractId: '1',
-    month: '2024-02',
-    rentAmount: 3000000,
-    electricityAmount: 180000,
-    waterAmount: 90000,
-    otherFees: 50000,
-    totalAmount: 3320000,
-    paidAmount: 0,
-    status: 'pending',
-    dueDate: '2024-02-05',
-    createdAt: '2024-02-01',
-    updatedAt: '2024-02-01'
-  }
-]
 
 // Computed
 const totalContractValue = computed(() => {
@@ -418,17 +345,20 @@ const loadContractData = async () => {
   console.log('Loading contract data for ID:', route.params.id);
   
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Find contract
-    contract.value = mockContracts.find(c => c.id === route.params.id) || null
+    // Fetch contract detail from API
+    contract.value = await contractStore.getDetailContract(route.params.id as string)
     
     if (contract.value) {
       // Load related data
-      room.value = mockRooms.find(r => r.id === contract.value!.roomId) || null
-      tenant.value = mockTenants.find(t => t.id === contract.value!.tenantId) || null
-      recentPayments.value = mockPayments.filter(p => p.contractId === contract.value!.id).slice(0, 3)
+      const [roomData, tenantData, paymentsData] = await Promise.all([
+        roomStore.getDetailRoom(contract.value.roomId),
+        tenantStore.getDetailTenant(contract.value.tenantId),
+        paymentStore.getListPayments({ contractId: contract.value.id })
+      ])
+      
+      room.value = roomData
+      tenant.value = tenantData
+      recentPayments.value = paymentsData.slice(0, 3)
     }
   } catch (error) {
     console.error('Error loading contract:', error)
