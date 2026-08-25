@@ -1,85 +1,110 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { DashboardStats, Room, Payment } from '@/types'
+import { useReportStore } from '@/stores/report'
+import { useRoomStore } from '@/stores/rooms'
+import { usePaymentStore } from '@/stores/payment'
+import { useContractStore } from '@/stores/contract'
+import { useTenantStore } from '@/stores/tenant'
 
-// Mock data - trong thực tế sẽ fetch từ API
-const stats = ref<DashboardStats>({
-  totalRooms: 24,
-  occupiedRooms: 18,
-  availableRooms: 4,
-  maintenanceRooms: 2,
-  totalTenants: 22,
-  monthlyRevenue: 45000000,
-  pendingPayments: 8,
-  overduePayments: 2
+const reportStore = useReportStore()
+const roomStore = useRoomStore()
+const paymentStore = usePaymentStore()
+const contractStore = useContractStore()
+const tenantStore = useTenantStore()
+
+const loading = ref(true)
+
+const stats = computed<DashboardStats>(() => {
+  return reportStore.dashboardStats || {
+    totalRooms: 0,
+    occupiedRooms: 0,
+    availableRooms: 0,
+    maintenanceRooms: 0,
+    totalTenants: 0,
+    monthlyRevenue: 0,
+    pendingPayments: 0,
+    overduePayments: 0,
+  }
 })
 
-const recentRooms = ref<Room[]>([
-  {
-    id: '1',
-    name: 'Phòng 101',
-    type: 'single',
-    area: 25,
-    price: 2500000,
-    deposit: 5000000,
-    status: 'available',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường'],
-    images: [],
-    floor: 1,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '2',
-    name: 'Phòng 102',
-    type: 'double',
-    area: 35,
-    price: 3500000,
-    deposit: 7000000,
-    status: 'occupied',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi'],
-    images: [],
-    floor: 1,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-])
+const recentRooms = computed<Room[]>(() => {
+  return (roomStore.listRooms || []).slice(0, 5)
+})
 
-const recentPayments = ref<Payment[]>([
-  {
-    id: '1',
-    contractId: 'CT001',
-    month: '2024-01',
-    rentAmount: 2500000,
-    electricityAmount: 150000,
-    waterAmount: 50000,
-    otherFees: 0,
-    totalAmount: 2700000,
-    paidAmount: 2700000,
-    paidDate: new Date(),
-    status: 'paid',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '2',
-    contractId: 'CT002',
-    month: '2024-01',
-    rentAmount: 3500000,
-    electricityAmount: 200000,
-    waterAmount: 75000,
-    otherFees: 100000,
-    totalAmount: 3875000,
-    paidAmount: 0,
-    status: 'pending',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-])
+const recentPayments = computed<Payment[]>(() => {
+  return (paymentStore.listPayments || []).slice(0, 5)
+})
 
 const occupancyRate = computed(() => {
+  if (!stats.value.totalRooms) return 0
   return Math.round((stats.value.occupiedRooms / stats.value.totalRooms) * 100)
 })
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    await Promise.allSettled([
+      reportStore.getDashboardStats(),
+      roomStore.getListRooms(),
+      paymentStore.getListPayments(),
+      contractStore.getListContracts(),
+      tenantStore.getListTenants(),
+    ])
+  } finally {
+    loading.value = false
+  }
+})
+
+const getRoomName = (contractIdOrObj: any): string => {
+  if (!contractIdOrObj) return 'N/A'
+  
+  if (typeof contractIdOrObj === 'object') {
+    if (contractIdOrObj.roomId && typeof contractIdOrObj.roomId === 'object' && contractIdOrObj.roomId.name) {
+      return contractIdOrObj.roomId.name
+    }
+    const rId = contractIdOrObj.roomId || contractIdOrObj.idRoom
+    if (rId && roomStore.listRooms?.length) {
+      const found = roomStore.listRooms.find(r => r.id === rId || (r as any)._id === rId)
+      if (found) return found.name
+    }
+    return 'Hợp đồng ' + (contractIdOrObj.id || contractIdOrObj._id || '').slice(-6)
+  }
+  
+  const contractId = String(contractIdOrObj)
+  const contract = contractStore.listContracts?.find(c => c.id === contractId || (c as any)._id === contractId)
+  if (contract?.roomId && roomStore.listRooms?.length) {
+    const found = roomStore.listRooms.find(r => r.id === contract.roomId || (r as any)._id === contract.roomId)
+    if (found) return found.name
+  }
+  
+  return 'Phòng'
+}
+
+const getTenantName = (contractIdOrObj: any): string => {
+  if (!contractIdOrObj) return ''
+  
+  if (typeof contractIdOrObj === 'object') {
+    if (contractIdOrObj.tenantId && typeof contractIdOrObj.tenantId === 'object' && contractIdOrObj.tenantId.name) {
+      return contractIdOrObj.tenantId.name
+    }
+    const tId = contractIdOrObj.tenantId || contractIdOrObj.idTenant
+    if (tId && tenantStore.listTenants?.length) {
+      const found = tenantStore.listTenants.find(t => t.id === tId || (t as any)._id === tId)
+      if (found) return found.name
+    }
+    return ''
+  }
+  
+  const contractId = String(contractIdOrObj)
+  const contract = contractStore.listContracts?.find(c => c.id === contractId || (c as any)._id === contractId)
+  if (contract?.tenantId && tenantStore.listTenants?.length) {
+    const found = tenantStore.listTenants.find(t => t.id === contract.tenantId || (t as any)._id === contract.tenantId)
+    if (found) return found.name
+  }
+  
+  return ''
+}
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -292,8 +317,11 @@ const getStatusText = (status: string) => {
                   </div>
                 </div>
                 <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">{{ payment.contractId }}</div>
-                  <div class="text-sm text-gray-500">{{ payment.month }} - {{ formatCurrency(payment.totalAmount) }}</div>
+                  <div class="text-sm font-medium text-gray-900">{{ getRoomName(payment.contractId) }}</div>
+                  <div class="text-sm text-gray-500">
+                    <span v-if="getTenantName(payment.contractId)" class="mr-1">{{ getTenantName(payment.contractId) }} •</span>
+                    {{ payment.month }} - {{ formatCurrency(payment.totalAmount) }}
+                  </div>
                 </div>
               </div>
               <span :class="['inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', getStatusColor(payment.status)]">

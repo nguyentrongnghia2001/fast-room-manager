@@ -22,7 +22,8 @@ export const usePaymentStore = defineStore('payment', {
             if(response.status !== 'success'){
               throw new Error("Failed to fetch payments");
             }
-            this.listPayments = response.data || []            
+            const data = response.data
+            this.listPayments = Array.isArray(data) ? data : (data?.items || data?.payments || data?.list || [])
             resolve(this.listPayments)
           })
           .catch((error) => {

@@ -15,7 +15,8 @@ export const useTenantStore = defineStore('tenant', {
             if(response.status !== 'success'){
               throw new Error("Failed to fetch tenants");
             }
-            this.listTenants = response.data || []            
+            const data = response.data
+            this.listTenants = Array.isArray(data) ? data : (data?.items || data?.tenants || data?.list || [])
             resolve(this.listTenants)
           })
           .catch((error) => {

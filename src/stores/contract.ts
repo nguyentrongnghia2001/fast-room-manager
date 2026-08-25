@@ -15,7 +15,8 @@ export const useContractStore = defineStore('contract', {
             if(response.status !== 'success'){
               throw new Error("Failed to fetch contracts");
             }
-            this.listContracts = response.data || []            
+            const data = response.data
+            this.listContracts = Array.isArray(data) ? data : (data?.items || data?.contracts || data?.list || [])
             resolve(this.listContracts)
           })
           .catch((error) => {

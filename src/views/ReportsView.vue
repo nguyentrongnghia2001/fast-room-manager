@@ -168,10 +168,10 @@
                 {{ formatDate(transaction.createdAt) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ transaction.contractId }}
+                {{ getRoomName(transaction.contractId) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {{ transaction.month }}
+                {{ getTenantName(transaction.contractId) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 Thanh toán
@@ -199,10 +199,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useReportStore } from '@/stores/report'
 import { usePaymentStore } from '@/stores/payment'
-import type { Payment } from '@/types'
+import { useRoomStore } from '@/stores/rooms'
+import { useTenantStore } from '@/stores/tenant'
+import type { Payment, Room, Tenant } from '@/types'
 
 const reportStore = useReportStore()
 const paymentStore = usePaymentStore()
+const roomStore = useRoomStore()
+const tenantStore = useTenantStore()
 
 // Reactive data
 const dateRange = ref({
@@ -219,6 +223,8 @@ const revenueStats = ref({
 })
 
 const recentTransactions = ref<Payment[]>([])
+const rooms = ref<Room[]>([])
+const tenants = ref<Tenant[]>([])
 
 // Computed
 const occupancyRate = computed(() => {
@@ -232,15 +238,19 @@ const occupancyRate = computed(() => {
 const loadData = async () => {
   isLoading.value = true
   try {
-    // Load revenue stats and recent payments
-    const [revenueData, paymentsData] = await Promise.all([
+    // Load revenue stats, recent payments, rooms, and tenants
+    const [revenueData, paymentsData, roomsData, tenantsData] = await Promise.all([
       reportStore.getRevenueStats(),
-      paymentStore.getListPayments({ status: undefined, month: undefined })
+      paymentStore.getListPayments({ status: undefined, month: undefined }),
+      roomStore.getListRooms(),
+      tenantStore.getListTenants()
     ])
     
     revenueStats.value = revenueData
     // Get the 5 most recent transactions
-    recentTransactions.value = paymentsData.slice(0, 5)
+    recentTransactions.value = Array.isArray(paymentsData) ? paymentsData.slice(0, 5) : []
+    rooms.value = Array.isArray(roomsData) ? roomsData : []
+    tenants.value = Array.isArray(tenantsData) ? tenantsData : []
   } catch (error) {
     console.error('Error loading report data:', error)
   } finally {
@@ -257,6 +267,52 @@ const formatCurrency = (amount: number): string => {
 
 const formatDate = (date: string | Date): string => {
   return new Date(date).toLocaleDateString('vi-VN')
+}
+
+const getRoomName = (contractIdOrObj: any): string => {
+  if (!contractIdOrObj) return 'N/A'
+  
+  if (typeof contractIdOrObj === 'object') {
+    if (contractIdOrObj.roomId && typeof contractIdOrObj.roomId === 'object' && contractIdOrObj.roomId.name) {
+      return contractIdOrObj.roomId.name
+    }
+    const rId = typeof contractIdOrObj.roomId === 'string' ? contractIdOrObj.roomId : contractIdOrObj.roomId?._id || contractIdOrObj.idRoom
+    if (rId && rooms.value?.length) {
+      const room = rooms.value.find(r => r.id === rId || (r as any)._id === rId)
+      if (room) return room.name
+    }
+    return 'Phòng'
+  }
+  
+  const rId = String(contractIdOrObj)
+  if (rooms.value?.length) {
+    const room = rooms.value.find(r => r.id === rId || (r as any)._id === rId)
+    if (room) return room.name
+  }
+  return 'Phòng'
+}
+
+const getTenantName = (contractIdOrObj: any): string => {
+  if (!contractIdOrObj) return 'N/A'
+  
+  if (typeof contractIdOrObj === 'object') {
+    if (contractIdOrObj.tenantId && typeof contractIdOrObj.tenantId === 'object' && contractIdOrObj.tenantId.name) {
+      return contractIdOrObj.tenantId.name
+    }
+    const tId = typeof contractIdOrObj.tenantId === 'string' ? contractIdOrObj.tenantId : contractIdOrObj.tenantId?._id || contractIdOrObj.idTenant
+    if (tId && tenants.value?.length) {
+      const tenant = tenants.value.find(t => t.id === tId || (t as any)._id === tId)
+      if (tenant) return tenant.name
+    }
+    return 'Khách thuê'
+  }
+  
+  const tId = String(contractIdOrObj)
+  if (tenants.value?.length) {
+    const tenant = tenants.value.find(t => t.id === tId || (t as any)._id === tId)
+    if (tenant) return tenant.name
+  }
+  return 'Khách thuê'
 }
 
 const getTransactionStatusColor = (status: string): string => {

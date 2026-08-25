@@ -5,10 +5,11 @@ export interface Floor {
   updatedAt: string | Date
 }
 export interface Room {
-  id: string
+  id?: string
   _id?: string
   name: string
-  idFloor: Floor
+  floor?: number | string
+  idFloor?: Floor | string
   type: RoomType
   area: number
   price: number
@@ -17,12 +18,12 @@ export interface Room {
   amenities: string[]
   description?: string
   images: string[]
-  createdAt: string | Date
-  updatedAt: string | Date
+  createdAt?: string | Date
+  updatedAt?: string | Date
 }
 
-type RoomType = 'single' | 'double' | 'family'
-type RoomStatus = 'available' | 'occupied' | 'maintenance'
+export type RoomType = 'single' | 'double' | 'family'
+export type RoomStatus = 'available' | 'occupied' | 'maintenance'
 
 export interface Tenant {
   id: string
@@ -100,7 +101,86 @@ export interface DashboardStats {
 }
 
 export interface ApiResponse<T> {
+  statusCode?: number
   status: 'success' | 'error'
   message?: string
   data: T
+}
+
+// Chatbot & RAG Interfaces
+export interface ChatSourceMetadata {
+  name?: string
+  price?: number
+  floor?: string | number
+  area?: number
+  type?: string
+  title?: string
+  roomId?: string
+  id?: string
+  [key: string]: any
+}
+
+export interface ChatSource {
+  type: 'room' | 'document' | string
+  score?: number
+  metadata?: ChatSourceMetadata
+  text?: string
+}
+
+export interface ChatMessage {
+  id?: string
+  sender: 'user' | 'bot'
+  content: string
+  sources?: ChatSource[]
+  intent?: string
+  timestamp?: string | Date
+  loading?: boolean
+  error?: string
+}
+
+export interface ChatResponseData {
+  message: string
+  sessionId: string
+  intent?: string
+  sources?: ChatSource[]
+}
+
+export interface ChatHistoryData {
+  sessionId: string
+  messages: Array<{
+    sender: 'user' | 'bot'
+    content: string
+    sources?: ChatSource[]
+    timestamp?: string | Date
+  }>
+}
+
+export interface RagSyncResult {
+  roomsSynced: number
+  docsSynced: number
+  totalVectors: number
+}
+
+export interface KnowledgeDoc {
+  _id?: string
+  id?: string
+  title: string
+  content: string
+  fileType?: 'markdown' | 'pdf' | 'text' | string
+  totalChunks?: number
+  status?: string
+  createdAt?: string | Date
+  updatedAt?: string | Date
+}
+
+export interface RagTestQueryResult {
+  score: number
+  type: 'room' | 'document' | string
+  text: string
+  metadata?: Record<string, any>
+}
+
+export interface RagTestQueryData {
+  query: string
+  results: RagTestQueryResult[]
 }

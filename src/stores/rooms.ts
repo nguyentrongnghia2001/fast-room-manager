@@ -15,7 +15,8 @@ export const useRoomStore = defineStore('room', {
             if(response.status !== 'success'){
               throw new Error("Failed to fetch rooms");
             }
-            this.listRooms = response.data || []            
+            const data = response.data
+            this.listRooms = Array.isArray(data) ? data : (data?.items || data?.rooms || data?.list || [])
             resolve(this.listRooms)
           })
           .catch((error) => {

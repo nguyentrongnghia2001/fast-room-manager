@@ -80,7 +80,7 @@ const getRoomTypeText = (type: Room['type']) => {
       <!-- Floor Badge -->
       <div class="absolute top-3 left-3">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-white">
-          Tầng {{ room.floor }}
+          {{ room.idFloor && typeof room.idFloor === 'object' ? room.idFloor.name : (room.floor ? 'Tầng ' + room.floor : 'Tầng N/A') }}
         </span>
       </div>
     </div>

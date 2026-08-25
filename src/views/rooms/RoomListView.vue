@@ -154,25 +154,28 @@ const filteredAndSortedRooms = computed(() => {
                          room.description?.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchesStatus = selectedStatus.value === 'all' || room.status === selectedStatus.value
     const matchesType = selectedType.value === 'all' || room.type === selectedType.value
-    const matchesFloor = selectedFloor.value === 'all' || room.floor === selectedFloor.value
+    const matchesFloor = selectedFloor.value === 'all' || 
+                         room.floor === selectedFloor.value ||
+                         (room.idFloor && typeof room.idFloor === 'object' && room.idFloor.name && room.idFloor.name.includes(String(selectedFloor.value))) ||
+                         (room.idFloor && typeof room.idFloor === 'string' && room.idFloor === String(selectedFloor.value))
     
     return matchesSearch && matchesStatus && matchesType && matchesFloor
   })
 
   // Sort
   const sorted = filtered.sort((a, b) => {
-    let aValue: Room[keyof Room] = a[sortBy.value]
-    let bValue: Room[keyof Room] = b[sortBy.value]
+    let aValue: any = a[sortBy.value as keyof Room]
+    let bValue: any = b[sortBy.value as keyof Room]
     
     if (sortBy.value === 'createdAt') {
-      aValue = new Date(aValue).getTime()
-      bValue = new Date(bValue).getTime()
+      aValue = aValue ? new Date(aValue).getTime() : 0
+      bValue = bValue ? new Date(bValue).getTime() : 0
     }
     
     if (sortOrder.value === 'asc') {
-      return aValue > bValue ? 1 : -1
+      return (aValue ?? 0) > (bValue ?? 0) ? 1 : -1
     } else {
-      return aValue < bValue ? 1 : -1
+      return (aValue ?? 0) < (bValue ?? 0) ? 1 : -1
     }
   })
 

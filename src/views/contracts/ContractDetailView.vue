@@ -72,7 +72,7 @@
               </div>
               <div>
                 <p class="text-sm text-gray-600">Tầng</p>
-                <p class="font-medium">{{ room.idFloor?.name || 'N/A' }}</p>
+                <p class="font-medium">{{ typeof room.idFloor === 'object' ? room.idFloor?.name : (room.idFloor || 'N/A') }}</p>
               </div>
               <div>
                 <p class="text-sm text-gray-600">Loại phòng</p>

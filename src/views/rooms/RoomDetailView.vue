@@ -21,78 +21,6 @@ const currentTenant = ref<Tenant | null>(null)
 const currentContract = ref<Contract | null>(null)
 const loading = ref(true)
 
-// Mock data - trong thực tế sẽ fetch từ API
-// const mockRooms: Room[] = [
-//   {
-//     id: '1',
-//     name: 'Phòng 101',
-//     type: 'single',
-//     area: 25,
-//     price: 2500000,
-//     deposit: 5000000,
-//     status: 'available',
-//     description: 'Phòng đơn thoáng mát, đầy đủ tiện nghi, gần trường đại học. Phòng được trang bị đầy đủ nội thất cơ bản, có cửa sổ lớn đón ánh sáng tự nhiên.',
-//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo', 'WiFi miễn phí', 'Máy nước nóng'],
-//     images: [],
-//     floor: 1,
-//     createdAt: new Date('2024-01-15'),
-//     updatedAt: new Date('2024-01-15')
-//   },
-//   {
-//     id: '2',
-//     name: 'Phòng 102',
-//     type: 'double',
-//     area: 35,
-//     price: 3500000,
-//     deposit: 7000000,
-//     status: 'occupied',
-//     description: 'Phòng đôi rộng rãi, phù hợp cho 2 người ở',
-//     amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công'],
-//     images: [],
-//     floor: 1,
-//     createdAt: new Date('2024-01-10'),
-//     updatedAt: new Date('2024-01-20')
-//   }
-// ]
-
-// const mockTenants: Tenant[] = [
-//   {
-//     id: '1',
-//     name: 'Nguyễn Văn A',
-//     email: 'nguyenvana@email.com',
-//     phone: '0123456789',
-//     idCard: '123456789012',
-//     address: '123 Đường ABC, Quận 1, TP.HCM',
-//     emergencyContact: 'Nguyễn Thị B',
-//     emergencyPhone: '0987654321',
-//     status: 'active',
-//     createdAt: new Date('2024-01-10'),
-//     updatedAt: new Date('2024-01-10')
-//   }
-// ]
-
-// const mockContracts: Contract[] = [
-//   {
-//     id: '1',
-//     roomId: '2',
-//     tenantId: '1',
-//     startDate: '2024-01-15',
-//     endDate: '2024-07-15',
-//     monthlyRent: 3500000,
-//     deposit: 7000000,
-//     status: 'active',
-//     createdAt: new Date('2024-01-10'),
-//     updatedAt: new Date('2024-01-10')
-//   }
-// ]
-
-// const formatCurrency = (amount: number): string => {
-//   return new Intl.NumberFormat('vi-VN', {
-//     style: 'currency',
-//     currency: 'VND'
-//   }).format(amount)
-// }
-
 const getStatusText = (status: Room['status']): string => {
   const statusMap = {
     available: 'Trống',
@@ -266,7 +194,7 @@ onMounted(() => {
                 
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Tầng</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ room.idFloor?.name }}</dd>
+                  <dd class="mt-1 text-sm text-gray-900">{{ typeof room.idFloor === 'object' ? room.idFloor?.name : (room.idFloor || 'N/A') }}</dd>
                 </div>
                 
                 <div>

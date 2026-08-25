@@ -1,9 +1,14 @@
-const formatDate = (date: string | Date): string => {
-  return new Intl.DateTimeFormat('vi-VN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(new Date(date))
+const formatDate = (date?: string | Date | null): string => {
+  if (!date) return ''
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(new Date(date))
+  } catch {
+    return ''
+  }
 }
 
 const formatCurrency = (amount: number): string => {

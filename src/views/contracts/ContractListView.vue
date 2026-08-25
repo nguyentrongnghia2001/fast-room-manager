@@ -327,17 +327,20 @@ const getStatusText = (status: string): string => {
 }
 
 const getRoomName = (roomId: string): string => {
-  const room = rooms.value.find(r => r.id === roomId)
+  if (!rooms.value || !Array.isArray(rooms.value)) return 'N/A'
+  const room = rooms.value.find(r => r.id === roomId || r._id === roomId)
   return room ? room.name : 'N/A'
 }
 
 const getTenantName = (tenantId: string): string => {
-  const tenant = tenants.value.find(t => t.id === tenantId)
+  if (!tenants.value || !Array.isArray(tenants.value)) return 'N/A'
+  const tenant = tenants.value.find(t => t.id === tenantId || t._id === tenantId)
   return tenant ? tenant.name : 'N/A'
 }
 
 const getTenantPhone = (tenantId: string): string => {
-  const tenant = tenants.value.find(t => t.id === tenantId)
+  if (!tenants.value || !Array.isArray(tenants.value)) return 'N/A'
+  const tenant = tenants.value.find(t => t.id === tenantId || t._id === tenantId)
   return tenant ? tenant.phone : 'N/A'
 }
 
@@ -358,9 +361,9 @@ const loadData = async () => {
       tenantStore.getListTenants()
     ])
     
-    contracts.value = contractsData
-    rooms.value = roomsData
-    tenants.value = tenantsData
+    contracts.value = Array.isArray(contractsData) ? contractsData : []
+    rooms.value = Array.isArray(roomsData) ? roomsData : []
+    tenants.value = Array.isArray(tenantsData) ? tenantsData : []
   } catch (error) {
     console.error('Error loading contracts:', error)
   } finally {

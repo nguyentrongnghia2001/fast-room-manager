@@ -25,40 +25,6 @@ const formData = reactive({
   status: 'available' as Room['status']
 })
 
-// Mock data - trong thực tế sẽ fetch từ API
-const mockRooms: Room[] = [
-  {
-    id: '1',
-    name: 'Phòng 101',
-    type: 'single',
-    area: 25,
-    price: 2500000,
-    deposit: 5000000,
-    status: 'available',
-    description: 'Phòng đơn thoáng mát, đầy đủ tiện nghi, gần trường đại học',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường', 'Bàn học', 'Tủ quần áo'],
-    images: [],
-    floor: 1,
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15')
-  },
-  {
-    id: '2',
-    name: 'Phòng 102',
-    type: 'double',
-    area: 35,
-    price: 3500000,
-    deposit: 7000000,
-    status: 'occupied',
-    description: 'Phòng đôi rộng rãi, phù hợp cho 2 người ở',
-    amenities: ['Điều hòa', 'Tủ lạnh', 'Giường đôi', 'Bàn học', 'Tủ quần áo', 'Ban công'],
-    images: [],
-    floor: 1,
-    createdAt: new Date('2024-01-10'),
-    updatedAt: new Date('2024-01-20')
-  }
-]
-
 const availableAmenities = [
   'Điều hòa',
   'Tủ lạnh',
@@ -113,7 +79,7 @@ const setRoomData  = (room?: Room) => {
   formData.area = room?.area || null
   formData.price = room?.price || null
   formData.deposit = room?.deposit || null
-  formData.floor = room?.floor || null
+  formData.floor = typeof room?.floor === 'number' ? room.floor : (room?.floor ? Number(room.floor) : null)
   formData.description = room?.description || ''
   formData.amenities = [...room?.amenities || []]
   formData.status = room?.status || 'available'
